@@ -103,8 +103,8 @@ void dda_create(DDA *dda, TARGET *target, DDA *prev_dda) {
   #ifdef LOOKAHEAD
   // Set the start and stop speeds to zero for now = full stops between
   // moves. Also fallback if lookahead calculations fail to finish in time.
-  dda->F_start = 0;
-  dda->F_end = 0;
+  dda->start_steps = 0;
+  dda->F_end_in_steps = 0;
   // Give this move an identifier.
   dda->id = idcnt++;
   #endif
@@ -634,12 +634,12 @@ void dda_step(DDA *dda) {
       || (move_state.endstop_stop && dda->n == 0)
     #endif
       ) {
-		dda->live = 0;
     #ifdef LOOKAHEAD
     // If look-ahead was using this move, it could have missed our activation:
     // make sure the ids do not match.
     dda->id--;
     #endif
+    dda->live = 0;
 		#ifdef	DC_EXTRUDER
 			heater_set(DC_EXTRUDER, 0);
 		#endif

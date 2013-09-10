@@ -146,9 +146,8 @@ typedef struct {
   // With the look-ahead functionality, it is possible to retain physical
   // movement between G1 moves. These variables keep track of the entry and
   // exit speeds between moves.
-  uint32_t          F_start;
   uint32_t          start_steps; ///< steps to reach F_start
-  uint32_t          F_end;
+  uint32_t          F_end_in_steps;
   // Displacement vector, in um, based between the difference of the starting
   // point and the target. Required to obtain the jerk between 2 moves.
   // Note: x_delta and co are in steps, not um.
