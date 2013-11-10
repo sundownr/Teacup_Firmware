@@ -321,8 +321,12 @@ void dda_join_moves(DDA *prev, DDA *current) {
   #endif
 
   // Bail out if there's nothing to join (e.g. G1 F1500).
-  if ( ! prev || prev->nullmove || current->crossF == 0)
+  if ( ! prev || prev->nullmove || current->crossF == 0) {
+    current->F_start = 0;
+    current->start_steps = 0;
+    current->F_end = 0;
     return;
+  }
 
   // Make sure we have 2 moves and the previous move is not already active
   if (prev->live == 0) {
