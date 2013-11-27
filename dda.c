@@ -407,16 +407,16 @@ void dda_create(DDA *dda, TARGET *target) {
 			if (dda->c < c_limit)
 				dda->c = c_limit;
 		#endif
+
+    // next dda starts where we finish
+    memcpy(&startpoint, target, sizeof(TARGET));
+    #ifdef LOOKAHEAD
+      prev_dda = dda;
+    #endif
 	} /* ! dda->total_steps == 0 */
 
 	if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
 		serial_writestr_P(PSTR("] }\n"));
-
-	// next dda starts where we finish
-	memcpy(&startpoint, target, sizeof(TARGET));
-  #ifdef LOOKAHEAD
-    prev_dda = dda;
-  #endif
 }
 
 /*! Start a prepared DDA
@@ -432,45 +432,42 @@ void dda_create(DDA *dda, TARGET *target) {
 */
 void dda_start(DDA *dda) {
 	// called from interrupt context: keep it simple!
-	if ( ! dda->nullmove) {
-		// get ready to go
-		psu_timeout = 0;
-		if (dda->z_delta)
-			z_enable();
-		if (dda->endstop_check)
-			endstops_on();
 
-		// set direction outputs
-		x_direction(dda->x_direction);
-		y_direction(dda->y_direction);
-		z_direction(dda->z_direction);
-		e_direction(dda->e_direction);
+  psu_timeout = 0;
+  if (dda->z_delta)
+    z_enable();
+  if (dda->endstop_check)
+    endstops_on();
 
-		#ifdef	DC_EXTRUDER
-		if (dda->e_delta)
-			heater_set(DC_EXTRUDER, DC_EXTRUDER_PWM);
-		#endif
+  // set direction outputs
+  x_direction(dda->x_direction);
+  y_direction(dda->y_direction);
+  z_direction(dda->z_direction);
+  e_direction(dda->e_direction);
 
-		// initialise state variable
-		move_state.x_counter = move_state.y_counter = move_state.z_counter = \
-			move_state.e_counter = -(dda->total_steps >> 1);
-		memcpy(&move_state.x_steps, &dda->x_delta, sizeof(uint32_t) * 4);
-    move_state.endstop_stop = 0;
-		#ifdef ACCELERATION_RAMPING
-			move_state.step_no = 0;
-		#endif
-		#ifdef ACCELERATION_TEMPORAL
-		move_state.x_time = move_state.y_time = \
-			move_state.z_time = move_state.e_time = 0UL;
-		#endif
+  #ifdef DC_EXTRUDER
+    if (dda->e_delta)
+      heater_set(DC_EXTRUDER, DC_EXTRUDER_PWM);
+  #endif
 
-		// ensure this dda starts
-		dda->live = 1;
+  // initialise state variable
+  move_state.x_counter = move_state.y_counter = move_state.z_counter = \
+    move_state.e_counter = -(dda->total_steps >> 1);
+  memcpy(&move_state.x_steps, &dda->x_delta, sizeof(uint32_t) * 4);
+  move_state.endstop_stop = 0;
+  #ifdef ACCELERATION_RAMPING
+    move_state.step_no = 0;
+  #endif
+  #ifdef ACCELERATION_TEMPORAL
+    move_state.x_time = move_state.y_time = \
+      move_state.z_time = move_state.e_time = 0UL;
+  #endif
 
-		// set timeout for first step
+  // ensure this dda starts
+  dda->live = 1;
+
+  // set timeout for first step
     setTimer(dda->c >> 8);
-	}
-	// else just a speed change, keep dda->live = 0
 
 	current_position.F = dda->endpoint.F;
 }

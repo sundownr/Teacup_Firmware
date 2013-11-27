@@ -1,5 +1,3 @@
-(This is test code for)
-(the look-ahead algorithm)
 G21
 G90
 G1 X5 F400
